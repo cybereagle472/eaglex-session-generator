@@ -1,0 +1,14 @@
+{
+  "name": "cybereagle-session-generator",
+  "version": "2.0.0",
+  "description": "Session generator for CyberEagle WhatsApp Bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "v7.0.0-rc.9",
+    "express": "latest",
+    "pino": "latest"
+  }
+}

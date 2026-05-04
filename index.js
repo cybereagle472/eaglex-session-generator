@@ -395,10 +395,19 @@ async function startSession(phoneNumber) {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(state.keys, P({ level: 'silent' }))
     },
-    browser: ['Ubuntu', 'Chrome', '22.0.0'],
-    // These are critical for pairing code to work
+    // FIX 3: realistic modern Chrome version — old version gets silently rejected
+    browser: ['CyberEagle', 'Chrome', '120.0.0'],
+    // FIX 2: keeps WebSocket alive during slow post-pairing sync
+    keepAliveIntervalMs: 10_000,
+    // prevents query timeouts during long initial sync
+    defaultQueryTimeoutMs: undefined,
     generateHighQualityLinkPreview: false,
     syncFullHistory: false,
+    // FIX 1: CRITICAL — without this WhatsApp hangs forever on "Logging in..."
+    // It needs this callback to complete message sync after pairing
+    getMessage: async () => {
+      return { conversation: '' };
+    },
   });
 
   // ── THE KEY FIX: request pairing code INSIDE connection.update ──

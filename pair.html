@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CyberEagle Session Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+    <style>
+      :root {
+        --primary-color: #1a1a2e;
+        --accent: #00ff88;
+        --accent2: #00c96b;
+        --gradient-primary: linear-gradient(135deg, #00ff88 0%, #00c96b 100%);
+        --gradient-dark: linear-gradient(135deg, #0a1a0a, #0d2a0d, #0a1a0a);
+        --text-color: #e0ffe0;
+        --muted: rgba(0,255,136,0.4);
+        --card-bg: rgba(0,255,136,0.03);
+        --border: rgba(0,255,136,0.08);
+        --success-color: #00ff88;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        background: var(--gradient-dark);
+        color: var(--text-color);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 15px;
+      }
+      .container {
+        width: 100%;
+        max-width: 450px;
+        background: var(--card-bg);
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,255,136,0.08), inset 0 1px 0 rgba(0,255,136,0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+      }
+      .container::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(0,255,136,0.4), transparent);
+      }
+      .header { text-align: center; margin-bottom: 28px; }
+      .logo {
+        width: 80px; height: 80px;
+        margin: 0 auto 18px;
+        background: var(--gradient-primary);
+        border-radius: 20px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 34px;
+        box-shadow: 0 10px 30px rgba(0,255,136,0.3), 0 0 0 1px rgba(0,255,136,0.2);
+        transition: all 0.4s ease;
+      }
+      .logo:hover { transform: scale(1.06) rotate(-4deg); box-shadow: 0 15px 40px rgba(0,255,136,0.45); }
+      .title {
+        font-size: 26px; font-weight: 800; margin-bottom: 6px;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+        letter-spacing: 1px;
+      }
+      .subtitle { font-size: 13px; color: var(--muted); letter-spacing: 1px; margin-bottom: 22px; }
+      .social-icons { display: flex; justify-content: center; gap: 12px; margin-bottom: 22px; }
+      .social-icons a {
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 17px; text-decoration: none;
+        background: rgba(0,255,136,0.05);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+        color: var(--accent);
+      }
+      .social-icons a:hover { transform: translateY(-3px); background: rgba(0,255,136,0.1); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+      .input-group { margin-bottom: 20px; }
+      .input-label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: rgba(0,255,136,0.8); letter-spacing: 0.5px; }
+      .input-field {
+        width: 100%; padding: 15px 18px;
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        background: rgba(0,255,136,0.03);
+        color: var(--text-color);
+        font-size: 15px; font-weight: 500;
+        transition: all 0.3s ease;
+        font-family: monospace;
+      }
+      .input-field::placeholder { color: rgba(0,255,136,0.25); }
+      .input-field:focus {
+        outline: none;
+        border-color: rgba(0,255,136,0.5);
+        box-shadow: 0 0 0 3px rgba(0,255,136,0.1);
+        background: rgba(0,255,136,0.05);
+      }
+      .generate-btn {
+        width: 100%; padding: 16px;
+        background: var(--gradient-primary);
+        border: none; border-radius: 14px;
+        color: #050a05; font-size: 15px; font-weight: 800;
+        cursor: pointer; letter-spacing: 1px;
+        transition: all 0.3s ease; margin-bottom: 18px;
+        position: relative; overflow: hidden;
+      }
+      .generate-btn::before {
+        content: '';
+        position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+        transition: 0.5s;
+      }
+      .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,255,136,0.35); }
+      .generate-btn:hover::before { left: 100%; }
+      .loading { display: none; text-align: center; margin: 18px 0; }
+      .loading i { font-size: 26px; color: var(--accent); animation: spin 1s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .code-display {
+        background: rgba(0,255,136,0.04);
+        padding: 20px; border-radius: 14px;
+        text-align: center; font-size: 17px; font-weight: 700;
+        margin-bottom: 18px; min-height: 58px;
+        display: flex; align-items: center; justify-content: center;
+        border: 1.5px solid var(--border);
+        font-family: 'Courier New', monospace;
+        letter-spacing: 3px;
+        color: var(--success-color);
+      }
+      .success-message { color: var(--success-color); display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 17px; }
+      .error-message { color: #ff6b6b; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; }
+      .copy-btn {
+        width: 100%; padding: 14px;
+        background: rgba(0,255,136,0.06);
+        border: 1.5px solid var(--border);
+        border-radius: 14px; font-size: 14px; font-weight: 600;
+        cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+        color: rgba(0,255,136,0.8); transition: all 0.3s ease; margin-top: 16px;
+      }
+      .copy-btn:hover { background: rgba(0,255,136,0.1); border-color: rgba(0,255,136,0.3); color: var(--accent); transform: translateY(-1px); }
+      .footer {
+        text-align: center; margin-top: 22px;
+        font-size: 11px; color: rgba(0,255,136,0.3);
+        padding-top: 18px; border-top: 1px solid var(--border);
+        letter-spacing: 1px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="logo">🦅</div>
+        <h1 class="title">CyberEagle</h1>
+        <p class="subtitle">WHATSAPP SESSION GENERATOR</p>
+        <div class="social-icons">
+          <a href="https://github.com/cybereagle472/my-wa-assistant" target="_blank" title="GitHub">
+            <i class="fab fa-github"></i>
+          </a>
+          <a href="https://wa.me/923441675739" target="_blank" title="WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="input-group" id="inputGroup">
+        <label class="input-label">WhatsApp number with country code</label>
+        <input
+          type="text"
+          id="mobileNumber"
+          class="input-field"
+          placeholder="923441675739"
+          pattern="[0-9]{10,}"
+        />
+      </div>
+
+      <button class="generate-btn" id="submit">
+        <i class="fas fa-key"></i> &nbsp; Generate Pairing Code
+      </button>
+
+      <div class="loading" id="loading">
+        <i class="fas fa-spinner"></i>
+      </div>
+
+      <div class="code-display" id="codeDisplay">
+        Your pairing code will appear here
+      </div>
+
+      <button class="copy-btn" id="copy" onclick="copyCode()">
+        <i class="fas fa-copy"></i> Copy Code
+      </button>
+
+      <div class="footer">
+        <p>🦅 CyberEagle Bot &nbsp;•&nbsp; Made by Nasir ™</p>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"></script>
+    <script>
+      document.getElementById("submit").addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        const mobileNumberInput = document.getElementById("mobileNumber");
+        const codeDisplay = document.getElementById("codeDisplay");
+        const loadingSpinner = document.getElementById("loading");
+        const submitBtn = document.getElementById("submit");
+
+        const mobileNumber = mobileNumberInput.value.trim().replace(/[^0-9]/g, "");
+        if (!mobileNumber || mobileNumber.length < 10) {
+          codeDisplay.innerHTML = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> Please enter a valid number with country code</div>';
+          return;
+        }
+
+        submitBtn.disabled = true;
+        loadingSpinner.style.display = "block";
+        codeDisplay.innerHTML = "";
+
+        try {
+          const response = await axios(`/pair?number=${mobileNumber}`);
+          const code = response.data.code || "Service Unavailable";
+
+          if (code === "Service Unavailable" || code === "PAIR_FAIL") {
+            codeDisplay.innerHTML = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> Failed to generate code. Try again.</div>';
+          } else {
+            codeDisplay.innerHTML = `<div class="success-message"><i class="fas fa-check-circle"></i> ${code}</div>`;
+          }
+        } catch (error) {
+          codeDisplay.innerHTML = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> Error. Please try again.</div>';
+        } finally {
+          loadingSpinner.style.display = "none";
+          submitBtn.disabled = false;
+        }
+      });
+
+      function copyCode() {
+        const text = document.getElementById("codeDisplay").innerText.replace("CODE: ", "").trim();
+        if (!text || text === "Your pairing code will appear here") return;
+        navigator.clipboard.writeText(text).then(() => {
+          const btn = document.getElementById("copy");
+          const orig = btn.innerHTML;
+          btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+          setTimeout(() => btn.innerHTML = orig, 2000);
+        });
+      }
+    </script>
+  </body>
+</html>

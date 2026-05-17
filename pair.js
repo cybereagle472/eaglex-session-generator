@@ -51,6 +51,10 @@ router.get("/", async (req, res) => {
         const { state, saveCreds } = await useMultiFileAuthState(dir);
         const { version } = await fetchLatestBaileysVersion();
 
+        // ✅ THE FIX: track when user has entered the code
+        // so we don't restart the socket and kill the pairing
+        let isLinking = false;
+
         const sock = makeWASocket({
             version,
             auth: {
@@ -69,7 +73,9 @@ router.get("/", async (req, res) => {
         sock.ev.on("creds.update", saveCreds);
 
         sock.ev.on("connection.update", async ({ connection, lastDisconnect }) => {
+
             if (connection === "open") {
+                isLinking = false;
                 try {
                     await delay(3000);
 
@@ -133,16 +139,34 @@ router.get("/", async (req, res) => {
             }
 
             if (connection === "close") {
-                const c = lastDisconnect?.error?.output?.statusCode;
-                if (c !== 401) setTimeout(() => start(), 2000);
+                const code = lastDisconnect?.error?.output?.statusCode;
+                console.log("Connection closed. Code:", code, "isLinking:", isLinking);
+
+                // ✅ KEY FIX: if user is entering the pairing code right now
+                // WhatsApp drops and re-opens the connection — DO NOT restart
+                // Restarting here creates a new socket which kills the pairing
+                if (isLinking) {
+                    console.log("🔗 Linking in progress — not restarting socket");
+                    return;
+                }
+
+                // Only restart if genuinely disconnected before pairing
+                if (code !== 401) {
+                    setTimeout(() => start(), 2000);
+                }
             }
         });
 
         if (!sock.authState.creds.registered) {
-            await delay(3000);
+            await delay(1500);
             try {
                 let code = await sock.requestPairingCode(num);
                 code = code?.match(/.{1,4}/g)?.join("-") || code;
+                console.log("✅ Pairing code:", code);
+
+                // ✅ Set flag AFTER code is sent to user
+                isLinking = true;
+
                 if (!res.headersSent) res.send({ success: true, code });
             } catch(err) {
                 console.error("Pairing error:", err);
